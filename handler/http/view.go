@@ -33,6 +33,9 @@ func adapterBuckets(buckets []*model.Bucket) []*Bucket {
 }
 
 type Object struct {
+	Vendor        string         `json:"vendor"`
+	Bucket        string         `json:"bucket"`
+	ObjectKey     string         `json:"object_key"`
 	ContentType   string         `json:"content_type"`
 	ContentLength int            `json:"content_length"`
 	ETag          string         `json:"etag"`
@@ -44,6 +47,9 @@ func adapterObject(object *model.Object) *Object {
 		return nil
 	}
 	return &Object{
+		Vendor:        object.Vendor,
+		Bucket:        object.Bucket,
+		ObjectKey:     object.ObjectKey,
 		ContentType:   object.ContentType,
 		ContentLength: object.ContentLength,
 		ETag:          object.ETag,
@@ -62,6 +68,9 @@ func adapterObjects(objects []*model.Object) []*Object {
 }
 
 type ObjectPart struct {
+	Vendor       string         `json:"vendor"`
+	Bucket       string         `json:"bucket"`
+	ObjectKey    string         `json:"object_key"`
 	PartNumber   int            `json:"part_number"`
 	ETag         string         `json:"etag"`
 	Size         int            `json:"size,omitempty"`
@@ -73,6 +82,9 @@ func adapterObjectPart(objectPart *model.ObjectPart) *ObjectPart {
 		return nil
 	}
 	return &ObjectPart{
+		Vendor:       objectPart.Vendor,
+		Bucket:       objectPart.Bucket,
+		ObjectKey:    objectPart.ObjectKey,
 		PartNumber:   objectPart.PartNumber,
 		ETag:         objectPart.ETag,
 		Size:         objectPart.Size,

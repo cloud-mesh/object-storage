@@ -133,38 +133,6 @@ func (h *handler) headObject(c echo.Context) error {
 // Form表单文件当超过32MB时，会保存到文件系统，Unix上临时目录由环境变量`$TMPDIR`指定，如果`$TMPDIR`为空，则为`/tmp`。
 // 生成的临时文件会在请求结束时自动删除。
 // 需确保临时文件目录有足够的存储空间，否则上传将失败。
-func (h *handler) createObject(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
-	bucketName := c.QueryParam("bucket_name")
-	objectKey := c.Param("object_key")
-
-	f, fh, err := c.Request().FormFile("file")
-	if err != nil {
-		return c.NoContent(http.StatusBadRequest)
-	}
-	defer f.Close()
-
-	if fh.Size <= 0 || fh.Size > maxUploadBytes {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("文件大小为%d", fh.Size))
-	}
-
-	if err := h.ucase.CreateObject(vendor, bucketName, objectKey, f); err != nil {
-		return err
-	}
-
-	object, err := h.ucase.HeadObject(vendor, bucketName, objectKey)
-	if err != nil {
-		return err
-	}
-
-	return jsonOK(c, map[string]interface{}{
-		"object": adapterObject(object),
-	})
-}
-
-// Form表单文件当超过32MB时，会保存到文件系统，Unix上临时目录由环境变量`$TMPDIR`指定，如果`$TMPDIR`为空，则为`/tmp`。
-// 生成的临时文件会在请求结束时自动删除。
-// 需确保临时文件目录有足够的存储空间，否则上传将失败。
 func (h *handler) postObject(c echo.Context) error {
 	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
@@ -251,7 +219,7 @@ func (h *handler) completeMultipartUpload(c echo.Context) error {
 	uploadID := c.QueryParam("upload_id")
 
 	post := struct {
-		CompleteParts []*model.ObjectCompletePart `json:"complete_parts"`
+		CompleteParts []model.ObjectCompletePart `json:"complete_parts"`
 	}{}
 	if err := c.Bind(&post); err != nil {
 		return model.ErrInvalidParam
