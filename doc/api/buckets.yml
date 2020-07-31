@@ -1,0 +1,158 @@
+openapi: 3.0.1
+info:
+  title: 对象存储API
+  version: 1.0.0
+servers:
+- url: http://example.com
+tags:
+- name: 桶操作
+  description: ""
+paths:
+  /object_storage/api/vendors/{vendor_name}/buckets:
+    get:
+      tags:
+      - 桶操作
+      summary: 获取桶列表
+      parameters:
+      - name: vendor_name
+        description: 厂家名称
+        required: true
+        in: path
+        schema:
+          type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            'application/json':
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Status'
+                - type: object
+                  properties:
+                    buckets:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Bucket'
+
+  /object_storage/api/vendors/{vendor_name}/buckets/{bucket_name}:
+    get:
+      tags:
+      - 桶操作
+      summary: 获取桶详情
+      parameters:
+      - name: vendor_name
+        description: 厂家名称
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶名称
+        required: true
+        in: path
+        schema:
+          type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            'application/json':
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Status'
+                - type: object
+                  properties:
+                    bucket:
+                      $ref: '#/components/schemas/Bucket'
+
+    post:
+      tags:
+      - 桶操作
+      summary: 创建桶
+      parameters:
+      - name: vendor_name
+        description: 厂家名称
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶名称
+        required: true
+        in: path
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vendor:
+                  type: string
+                  description: 厂家
+      responses:
+        200:
+          description: 成功
+          content:
+            'application/json':
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Status'
+                - type: object
+                  properties:
+                    bucket:
+                      $ref: '#/components/schemas/Bucket'
+
+    delete:
+      tags:
+      - 桶操作
+      summary: 删除桶
+      parameters:
+      - name: vendor_name
+        description: 厂家名称
+        required: true
+        in: path
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶名称
+        required: true
+        in: path
+        schema:
+          type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Status'
+
+components:
+  schemas:
+    Status:
+      type: object
+      properties:
+        errcode:
+          type: number
+          description: 错误码，1000为成功
+          example: 1000
+        msg:
+          type: string
+          description: 错误信息
+    Bucket:
+      type: object
+      description: Sei查询任务
+      properties:
+        vendor:
+          type: string
+          description: 厂家
+        name:
+          type: string
+          description: 桶名称
+        created_at:
+          type: string
+          description: 创建时间
