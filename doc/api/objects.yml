@@ -8,16 +8,64 @@ tags:
 - name: 对象操作
   description: ""
 paths:
-  /object_storage/api/vendors/{vendor_name}/buckets/{bucket_name}/objects:
+  /{object_key}?vendor={vendor_name}&bucket={bucket_name}:
+    get:
+      tags:
+      - 对象操作
+      summary: 获取对象详情
+      parameters:
+      - name: vendor_name
+        description: 厂家
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: object_key
+        description: 对象KEY
+        required: true
+        in: query
+        schema:
+          type: string
+      responses:
+        200:
+          description: 成功
+          content:
+            'application/json':
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Status'
+                - type: object
+                  properties:
+                    object:
+                      $ref: '#/components/schemas/Object'
+
     post:
       tags:
       - 对象操作
-      summary: 创建并上传对象
+      summary: 上传对象
       parameters:
-      - name: bucket_name
-        description: 桶名称
+      - name: vendor_name
+        description: 厂家
         required: true
-        in: path
+        in: query
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: object_key
+        description: 对象KEY
+        required: true
+        in: query
         schema:
           type: string
       - name: X-OS-COPY-SOURCE-KEY
@@ -32,10 +80,6 @@ paths:
             schema:
               type: object
               properties:
-                object_key:
-                  type: string
-                  description: 对象KEY（即路径）
-                  required: true
                 file:
                   type: string
                   format: binary
@@ -52,40 +96,28 @@ paths:
                     object:
                       $ref: '#/components/schemas/Object'
 
-  /object_storage/api/vendors/{vendor_name}/buckets/{bucket_name}/objects/{object_key}:
-    get:
-      tags:
-      - 对象操作
-      summary: 获取对象详情
-      parameters:
-      - name: object_key
-        description: 对象KEY
-        required: true
-        in: path
-        schema:
-          type: string
-      responses:
-        200:
-          description: 成功
-          content:
-            'application/json':
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/Status'
-                - type: object
-                  properties:
-                    object:
-                      $ref: '#/components/schemas/Object'
 
     put:
       tags:
       - 对象操作
       summary: 上传对象
       parameters:
+      - name: vendor_name
+        description: 厂家
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶
+        required: true
+        in: query
+        schema:
+          type: string
       - name: object_key
         description: 对象KEY
         required: true
-        in: path
+        in: query
         schema:
           type: string
       - name: X-OS-COPY-SOURCE-KEY
@@ -124,10 +156,22 @@ paths:
       - 对象操作
       summary: 删除对象
       parameters:
+      - name: vendor_name
+        description: 厂家
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶
+        required: true
+        in: query
+        schema:
+          type: string
       - name: object_key
         description: 对象KEY
         required: true
-        in: path
+        in: query
         schema:
           type: string
       responses:
@@ -138,16 +182,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
 
-  /object_storage/api/vendors/{vendor_name}/buckets/{bucket_name}/objects/{object_key}/uploads:
+  /{object_key}?vendor={vendor_name}&bucket={bucket_name}&uploads:
     post:
       tags:
       - 对象操作
       summary: 创建分段上传
       parameters:
+      - name: vendor_name
+        description: 厂家
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶
+        required: true
+        in: query
+        schema:
+          type: string
       - name: object_key
         description: 对象KEY
         required: true
-        in: path
+        in: query
         schema:
           type: string
       responses:
@@ -164,22 +220,34 @@ paths:
                       type: string
                       description: 分段上传ID
 
-  /object_storage/api/vendors/{vendor_name}/buckets/{bucket_name}/objects/{object_key}/uploads/{upload_id}/eof:
+  /{object_key}?vendor={vendor_name}&bucket={bucket_name}&upload_id={upload_id}&eof:
     post:
       tags:
       - 对象操作
       summary: 完成分段上传
       parameters:
+      - name: vendor_name
+        description: 厂家
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶
+        required: true
+        in: query
+        schema:
+          type: string
       - name: object_key
         description: 对象KEY
         required: true
-        in: path
+        in: query
         schema:
           type: string
       - name: upload_id
         description: 分段上传ID
         required: true
-        in: path
+        in: query
         schema:
           type: string
       responses:
@@ -190,22 +258,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
 
-  /object_storage/api/vendors/{vendor_name}/buckets/{bucket_name}/objects/{object_key}/uploads/{upload_id}:
+  /{object_key}?vendor={vendor_name}&bucket={bucket_name}&upload_id={upload_id}:
     delete:
       tags:
       - 对象操作
       summary: 取消分段上传
       parameters:
+      - name: vendor_name
+        description: 厂家
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶
+        required: true
+        in: query
+        schema:
+          type: string
       - name: object_key
         description: 对象KEY
         required: true
-        in: path
+        in: query
         schema:
           type: string
       - name: upload_id
         description: 分段上传ID
         required: true
-        in: path
+        in: query
         schema:
           type: string
       responses:
@@ -216,22 +296,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
 
-  /object_storage/api/vendors/{vendor_name}/buckets/{bucket_name}/objects/{object_key}/uploads/{upload_id}/parts:
+  /{object_key}?vendor={vendor_name}&bucket={bucket_name}&upload_id={upload_id}&parts:
     get:
       tags:
       - 对象操作
       summary: 获取已上传片段
       parameters:
+      - name: vendor_name
+        description: 厂家
+        required: true
+        in: query
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶
+        required: true
+        in: query
+        schema:
+          type: string
       - name: object_key
         description: 对象KEY
         required: true
-        in: path
+        in: query
         schema:
           type: string
       - name: upload_id
         description: 分段上传ID
         required: true
-        in: path
+        in: query
         schema:
           type: string
       responses:
@@ -252,22 +344,28 @@ paths:
       - 对象操作
       summary: 上传片段
       parameters:
-      - name: bucket_name
-        description: 桶名称
+      - name: vendor_name
+        description: 厂家
         required: true
-        in: path
+        in: query
+        schema:
+          type: string
+      - name: bucket_name
+        description: 桶
+        required: true
+        in: query
         schema:
           type: string
       - name: object_key
         description: 对象KEY
         required: true
-        in: path
+        in: query
         schema:
           type: string
       - name: upload_id
         description: 分段上传ID
         required: true
-        in: path
+        in: query
         schema:
           type: string
       requestBody:

@@ -8,7 +8,7 @@ tags:
 - name: 桶操作
   description: ""
 paths:
-  /object_storage/api/vendors/{vendor_name}/buckets:
+  /?vedor={vendor_name}:
     get:
       tags:
       - 桶操作
@@ -17,7 +17,7 @@ paths:
       - name: vendor_name
         description: 厂家名称
         required: true
-        in: path
+        in: query
         schema:
           type: string
       responses:
@@ -35,7 +35,7 @@ paths:
                       items:
                         $ref: '#/components/schemas/Bucket'
 
-  /object_storage/api/vendors/{vendor_name}/buckets/{bucket_name}:
+  /?vendor={vendor_anme}&bucket={bucket_name}:
     get:
       tags:
       - 桶操作
@@ -44,13 +44,13 @@ paths:
       - name: vendor_name
         description: 厂家名称
         required: true
-        in: path
+        in: query
         schema:
           type: string
       - name: bucket_name
         description: 桶名称
         required: true
-        in: path
+        in: query
         schema:
           type: string
       responses:
@@ -66,7 +66,7 @@ paths:
                     bucket:
                       $ref: '#/components/schemas/Bucket'
 
-    post:
+    put:
       tags:
       - 桶操作
       summary: 创建桶
@@ -74,13 +74,13 @@ paths:
       - name: vendor_name
         description: 厂家名称
         required: true
-        in: path
+        in: query
         schema:
           type: string
       - name: bucket_name
         description: 桶名称
         required: true
-        in: path
+        in: query
         schema:
           type: string
       requestBody:
@@ -114,13 +114,13 @@ paths:
       - name: vendor_name
         description: 厂家名称
         required: true
-        in: path
+        in: query
         schema:
           type: string
       - name: bucket_name
         description: 桶名称
         required: true
-        in: path
+        in: query
         schema:
           type: string
       responses:
