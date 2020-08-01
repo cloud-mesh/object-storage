@@ -8,45 +8,43 @@ import (
 )
 
 type repoImpl struct {
-	vendor string
-	client obsSdk.BasicClient
+	clientAdapter obsSdk.BasicClient
 }
 
-func New(vendor string, client obsSdk.BasicClient) *repoImpl {
-	return &repoImpl{vendor, client}
+func New(clientAdapter obsSdk.BasicClient) *repoImpl {
+	return &repoImpl{clientAdapter}
 }
 
 func (r *repoImpl) GetBucket(bucketName string) (*model.Bucket, error) {
-	if err := r.client.HeadBucket(bucketName); err != nil {
+	if err := r.clientAdapter.HeadBucket(bucketName); err != nil {
 		return nil, err
 	}
 
 	bucket := &model.Bucket{
-		Vendor: r.vendor,
-		Name:   bucketName,
+		Name: bucketName,
 	}
 	return bucket, nil
 }
 
 func (r *repoImpl) ListBucket(page int, pageSize int) ([]*model.Bucket, error) {
-	bucketProperties, err := r.client.ListBucket() // TODO: support page & pageSize
+	bucketProperties, err := r.clientAdapter.ListBucket() // TODO: support page & pageSize
 	if err != nil {
 		return nil, err
 	}
 
-	return adapterBuckets(r.vendor, bucketProperties), nil
+	return adapterBuckets(bucketProperties), nil
 }
 
 func (r *repoImpl) CreateBucket(bucketName string) error {
-	return r.client.MakeBucket(bucketName)
+	return r.clientAdapter.MakeBucket(bucketName)
 }
 
 func (r *repoImpl) DeleteBucket(bucketName string) error {
-	return r.client.RemoveBucket(bucketName)
+	return r.clientAdapter.RemoveBucket(bucketName)
 }
 
 func (r *repoImpl) HeadObject(bucketName string, objectKey string) (object *model.Object, err error) {
-	bucket, err := r.client.Bucket(bucketName)
+	bucket, err := r.clientAdapter.Bucket(bucketName)
 	if err != nil {
 		return nil, err
 	}
@@ -56,11 +54,11 @@ func (r *repoImpl) HeadObject(bucketName string, objectKey string) (object *mode
 		return nil, err
 	}
 
-	return adapterObject(r.vendor, bucketName, objectKey, objectMeta), nil
+	return adapterObject(objectKey, objectMeta), nil
 }
 
 func (r *repoImpl) PutObject(bucketName string, objectKey string, reader io.Reader) error {
-	bucket, err := r.client.Bucket(bucketName)
+	bucket, err := r.clientAdapter.Bucket(bucketName)
 	if err != nil {
 		return err
 	}
@@ -69,7 +67,7 @@ func (r *repoImpl) PutObject(bucketName string, objectKey string, reader io.Read
 }
 
 func (r *repoImpl) DeleteObject(bucketName string, objectKey string) error {
-	bucket, err := r.client.Bucket(bucketName)
+	bucket, err := r.clientAdapter.Bucket(bucketName)
 	if err != nil {
 		return err
 	}
@@ -124,11 +122,11 @@ func (r *repoImpl) ListParts(bucketName string, objectKey string, uploadId strin
 		return nil, err
 	}
 
-	return adapterObjectParts(r.vendor, bucketName, objectKey, parts), nil
+	return adapterObjectParts(parts), nil
 }
 
 func (r *repoImpl) getMultipartBucket(bucketName string) (obsSdk.MultipartUploadAbleBucket, error) {
-	bucket, err := r.client.Bucket(bucketName)
+	bucket, err := r.clientAdapter.Bucket(bucketName)
 	if err != nil {
 		return nil, err
 	}

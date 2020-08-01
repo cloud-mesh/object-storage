@@ -4,7 +4,6 @@ import (
 	"github.com/cloud-mesh/object-storage-sdk/impl/huaweicloud_obs"
 	"github.com/cloud-mesh/object-storage-sdk/impl/huaweicloud_obs/obs"
 	"github.com/cloud-mesh/object-storage/handler/http"
-	"github.com/cloud-mesh/object-storage/model"
 	"github.com/cloud-mesh/object-storage/model/repository/storage"
 	"github.com/cloud-mesh/object-storage/model/usecase"
 	"github.com/cloud-mesh/object-storage/utils"
@@ -15,17 +14,22 @@ import (
 	"time"
 )
 
+const (
+	storageVendorHuawei = "huawei"
+)
+
 var (
 	// 基本配置
-	httpPort = utils.EnvInt("HTTP_PORT", 80)
-	dataPath = utils.Env("DATA_PATH", "/data/")
-	logLevel = utils.Env("LOG_LEVEL", "info")
+	storageVendor = utils.Env("STORAGE_VENDOR", storageVendorHuawei)
+	httpPort      = utils.EnvInt("HTTP_PORT", 80)
+	dataPath      = utils.Env("DATA_PATH", "/data/")
+	logLevel      = utils.Env("LOG_LEVEL", "info")
 
 	// 华为对象存储
-	huaweiEndpoint = os.Getenv("HUAWEI_OBS_ENDPOINT")
-	huaweiLocation = os.Getenv("HUAWEI_OBS_LOCATION")
-	huaweiAK       = os.Getenv("HUAWEI_OBS_AK")
-	huaweiSK       = os.Getenv("HUAWEI_OBS_SK")
+	huaweiEndpoint = utils.Env("HUAWEI_OBS_ENDPOINT", "")
+	huaweiLocation = utils.Env("HUAWEI_OBS_LOCATION", "")
+	huaweiAK       = utils.Env("HUAWEI_OBS_AK", "")
+	huaweiSK       = utils.Env("HUAWEI_OBS_SK", "")
 )
 
 func main() {
@@ -34,9 +38,8 @@ func main() {
 	accessLogFile := openFile(filepath.Join(dataPath, "access.log"))
 	defer accessLogFile.Close()
 
-	storageRegistry := usecase.NewRegistry()
-	registerVendors(storageRegistry)
-	ucase := usecase.NewUseCase(storageRegistry)
+	storageRepo := getStorage()
+	ucase := usecase.NewUseCase(storageVendor, storageRepo)
 
 	configLog(mainLogFile, logLevel)
 	http.ServerHTTP(httpPort, accessLogFile, func(e *echo.Echo) {
@@ -44,15 +47,19 @@ func main() {
 	})
 }
 
-func registerVendors(registry usecase.StorageRegistry) {
-	// 华为云对象存储
-	huaweiObsClient, err := obs.New(huaweiAK, huaweiSK, huaweiEndpoint)
-	if err != nil {
-		log.WithError(err).Fatalf("new huawei obs client")
+func getStorage() storage.Repo {
+	switch storageVendor {
+	case storageVendorHuawei:
+		// 华为云对象存储
+		huaweiObsClient, err := obs.New(huaweiAK, huaweiSK, huaweiEndpoint)
+		if err != nil {
+			log.WithError(err).Fatalf("new huawei obs client")
+		}
+		huaweiObsClientAdapter := huaweicloud_obs.NewClient(huaweiLocation, huaweiObsClient)
+		return storage.New(huaweiObsClientAdapter)
+	default:
+		panic("unsupported storage vendor")
 	}
-	huaweiObs := huaweicloud_obs.NewClient(huaweiLocation, huaweiObsClient)
-	huaweiStorage := storage.New(model.VendorHuaweiOBS, huaweiObs)
-	registry.Register(model.VendorHuaweiOBS, huaweiStorage)
 }
 
 func openFile(filePath string) *os.File {

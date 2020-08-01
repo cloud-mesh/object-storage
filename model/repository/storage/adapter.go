@@ -5,26 +5,23 @@ import (
 	"github.com/cloud-mesh/object-storage/model"
 )
 
-func adapterBucket(vendor string, bucketProperties obsSdk.BucketProperties) *model.Bucket {
+func adapterBucket(bucketProperties obsSdk.BucketProperties) *model.Bucket {
 	return &model.Bucket{
-		Vendor: vendor,
 		Name:   bucketProperties.Name,
 	}
 }
 
-func adapterBuckets(vendor string, bucketProperties []obsSdk.BucketProperties) []*model.Bucket {
+func adapterBuckets(bucketProperties []obsSdk.BucketProperties) []*model.Bucket {
 	buckets := make([]*model.Bucket, 0, len(bucketProperties))
 	for _, bucketProperty := range bucketProperties {
-		buckets = append(buckets, adapterBucket(vendor, bucketProperty))
+		buckets = append(buckets, adapterBucket(bucketProperty))
 	}
 
 	return buckets
 }
 
-func adapterObject(vendor string, bucketName string, objectKey string, objectMeta obsSdk.ObjectMeta) *model.Object {
+func adapterObject(objectKey string, objectMeta obsSdk.ObjectMeta) *model.Object {
 	return &model.Object{
-		Vendor:        vendor,
-		Bucket:        bucketName,
 		ObjectKey:     objectKey,
 		ContentType:   objectMeta.ContentType,
 		ContentLength: objectMeta.ContentLength,
@@ -33,14 +30,11 @@ func adapterObject(vendor string, bucketName string, objectKey string, objectMet
 	}
 }
 
-func adapterObjectPart(vendor string, bucket string, objectKey string, part *obsSdk.Part) *model.ObjectPart {
+func adapterObjectPart(part *obsSdk.Part) *model.ObjectPart {
 	if part == nil {
 		return nil
 	}
 	return &model.ObjectPart{
-		Vendor:       vendor,
-		Bucket:       bucket,
-		ObjectKey:    objectKey,
 		PartNumber:   part.PartNumber,
 		Size:         part.Size,
 		ETag:         part.ETag,
@@ -48,10 +42,10 @@ func adapterObjectPart(vendor string, bucket string, objectKey string, part *obs
 	}
 }
 
-func adapterObjectParts(vendor string, bucket string, objectKey string, parts []obsSdk.Part) []*model.ObjectPart {
+func adapterObjectParts(parts []obsSdk.Part) []*model.ObjectPart {
 	objectParts := make([]*model.ObjectPart, 0, len(parts))
 	for _, part := range parts {
-		objectParts = append(objectParts, adapterObjectPart(vendor, bucket, objectKey, &part))
+		objectParts = append(objectParts, adapterObjectPart(&part))
 	}
 
 	return objectParts

@@ -1,0 +1,52 @@
+openapi: 3.0.1
+info:
+  title: 对象存储API
+  version: 1.0.0
+servers:
+  - url: http://{region}.example.com
+tags:
+  - name: 区域
+    description: ""
+paths:
+  /:
+    get:
+      tags:
+        - 区域
+      summary: 获取桶列表
+      responses:
+        200:
+          description: 成功
+          content:
+            'application/json':
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Status'
+                  - type: object
+                    properties:
+                      buckets:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Bucket'
+
+components:
+  schemas:
+    Status:
+      type: object
+      properties:
+        errcode:
+          type: number
+          description: 错误码，1000为成功
+          example: 1000
+        msg:
+          type: string
+          description: 错误信息
+    Bucket:
+      type: object
+      description: 桶
+      properties:
+        name:
+          type: string
+          description: 桶名称
+        created_at:
+          type: string
+          description: 创建时间

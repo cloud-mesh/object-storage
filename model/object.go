@@ -5,8 +5,6 @@ import (
 )
 
 type Object struct {
-	Vendor        string
-	Bucket        string
 	ObjectKey     string
 	ContentType   string
 	ContentLength int
@@ -15,9 +13,6 @@ type Object struct {
 }
 
 type ObjectPart struct {
-	Vendor       string
-	Bucket       string
-	ObjectKey    string
 	PartNumber   int
 	Size         int
 	ETag         string
@@ -25,9 +20,6 @@ type ObjectPart struct {
 }
 
 type ObjectCompletePart struct {
-	Vendor     string
-	Bucket     string
-	ObjectKey  string
 	PartNumber int
 	ETag       string
 }

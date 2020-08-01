@@ -21,44 +21,151 @@ func NewHandler(ucase usecase.UseCase) *handler {
 }
 
 func (h *handler) Route(e *echo.Echo) {
-	bucketMux := NewQueryMux()
-	e.Any("/", bucketMux.Handle())
-	// 桶列表
-	bucketMux.GET("?vendor=:vendor_name", h.listBucket)
-	// 创建桶
-	bucketMux.POST("?vendor=:vendor_name", h.createBucket)
-	// 桶详情
-	bucketMux.GET("?vendor=:vendor_name&bucket=:bucket_name", h.getBucket)
-	// 删除桶
-	bucketMux.DELETE("?vendor=:vendor_name&bucket=:bucket_name", h.deleteBucket)
+	e.HEAD("/", func(c echo.Context) error {
+		bucketName := getBucketName(c)
+		if bucketName == "" {
+			// TODO: head region
+			return c.NoContent(http.StatusNotFound)
+		} else {
+			return h.headBucket(c)
+		}
+	})
+	e.GET("/", func(c echo.Context) error {
+		bucketName := getBucketName(c)
+		if bucketName == "" {
+			return h.listBucket(c)
+		} else {
+			return c.NoContent(http.StatusNotFound)
+		}
+	})
+	e.PUT("/", func(c echo.Context) error {
+		bucketName := getBucketName(c)
+		if bucketName == "" {
+			return c.NoContent(http.StatusNotFound)
+		} else {
+			return h.createBucket(c)
+		}
+	})
+	e.DELETE("/", func(c echo.Context) error {
+		bucketName := getBucketName(c)
+		if bucketName == "" {
+			return c.NoContent(http.StatusNotFound)
+		} else {
+			return h.deleteBucket(c)
+		}
+	})
+	e.HEAD("/:object_key", func(c echo.Context) error {
+		bucketName := getBucketName(c)
+		if bucketName == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
 
-	objectMux := NewQueryMux()
-	e.Any("/:object_key", objectMux.Handle())
-	// 对象详情
-	objectMux.HEAD("?vendor=:vendor_name&bucket=:bucket_name", h.headObject)
-	// 删除对象
-	objectMux.DELETE("?vendor=:vendor_name&bucket=:bucket_name", h.deleteObject)
-	// 表单上传
-	objectMux.POST("?vendor=:vendor_name&bucket=:bucket_name", h.postObject)
-	// 流式上传
-	objectMux.PUT("?vendor=:vendor_name&bucket=:bucket_name", h.putObject)
-	// 初始化分段上传
-	objectMux.POST("?vendor=:vendor_name&bucket=:bucket_name&uploads", h.initMultipartUpload)
-	// 完成分段上传
-	objectMux.POST("?vendor=:vendor_name&bucket=:bucket_name&upload_id=:upload_id&eof", h.completeMultipartUpload)
-	// 取消分段上传
-	objectMux.DELETE("?vendor=:vendor_name&bucket=:bucket_name&upload_id=:upload_id", h.abortMultipartUpload)
-	// 上传分段
-	objectMux.POST("?vendor=:vendor_name&bucket=:bucket_name&upload_id=:upload_id&part_id=:part_id", h.uploadPart)
-	// 查看分段列表
-	objectMux.GET("?vendor=:vendor_name&bucket=:bucket_name&upload_id=:upload_id&parts", h.listParts)
+		objectKey := c.Param("object_key")
+		if objectKey == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		return h.headObject(c)
+	})
+	e.GET("/:object_key", func(c echo.Context) error {
+		bucketName := getBucketName(c)
+		if bucketName == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		objectKey := c.Param("object_key")
+		if objectKey == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		uploadId := c.QueryParam("upload_id")
+		if uploadId == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		if _, ok := c.QueryParams()["parts"]; !ok {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		return h.listParts(c)
+	})
+	e.POST("/:object_key", func(c echo.Context) error {
+		bucketName := getBucketName(c)
+		if bucketName == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		objectKey := c.Param("object_key")
+		if objectKey == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		if _, ok := c.QueryParams()["uploads"]; ok {
+			return h.initMultipartUpload(c)
+		}
+
+		uploadId := c.QueryParam("upload_id")
+		if uploadId == "" {
+			return h.postObject(c)
+		}
+
+		if _, ok := c.QueryParams()["eof"]; ok {
+			return h.completeMultipartUpload(c)
+		}
+
+		partNumber := c.QueryParam("part_number")
+		if partNumber == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		return h.uploadPart(c)
+	})
+	e.PUT("/:object_key", func(c echo.Context) error {
+		bucketName := getBucketName(c)
+		if bucketName == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		objectKey := c.Param("object_key")
+		if objectKey == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		return h.putObject(c)
+	})
+	e.DELETE("/:object_key", func(c echo.Context) error {
+		bucketName := getBucketName(c)
+		if bucketName == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		objectKey := c.Param("object_key")
+		if objectKey == "" {
+			return c.NoContent(http.StatusNotFound)
+		}
+
+		uploadId := c.QueryParam("upload_id")
+		if uploadId == "" {
+			return h.deleteObject(c)
+		} else {
+			return h.abortMultipartUpload(c)
+		}
+	})
+}
+
+func (h *handler) headRegion(c echo.Context) error {
+	region, err := h.ucase.HeadRegion()
+	if err != nil {
+		return err
+	}
+	return jsonOK(c, map[string]interface{}{
+		"region": adapterRegion(region),
+	})
 }
 
 func (h *handler) listBucket(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	page, pageSize := getPaging(c)
-
-	buckets, err := h.ucase.ListBucket(vendor, page, pageSize)
+	buckets, err := h.ucase.ListBucket(page, pageSize)
 	if err != nil {
 		return err
 	}
@@ -68,11 +175,9 @@ func (h *handler) listBucket(c echo.Context) error {
 	})
 }
 
-func (h *handler) getBucket(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
+func (h *handler) headBucket(c echo.Context) error {
 	bucketName := c.QueryParam("bucket_name")
-
-	bucket, err := h.ucase.GetBucket(vendor, bucketName)
+	bucket, err := h.ucase.GetBucket(bucketName)
 	if err != nil {
 		return err
 	}
@@ -83,7 +188,6 @@ func (h *handler) getBucket(c echo.Context) error {
 }
 
 func (h *handler) createBucket(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 
 	post := &Bucket{}
@@ -91,10 +195,10 @@ func (h *handler) createBucket(c echo.Context) error {
 		return model.ErrInvalidParam
 	}
 
-	if err := h.ucase.CreateBucket(vendor, bucketName); err != nil {
+	if err := h.ucase.CreateBucket(bucketName); err != nil {
 		return err
 	}
-	bucket, err := h.ucase.GetBucket(vendor, bucketName)
+	bucket, err := h.ucase.GetBucket(bucketName)
 	if err != nil {
 		return err
 	}
@@ -105,10 +209,9 @@ func (h *handler) createBucket(c echo.Context) error {
 }
 
 func (h *handler) deleteBucket(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 
-	if err := h.ucase.DeleteBucket(vendor, bucketName); err != nil {
+	if err := h.ucase.DeleteBucket(bucketName); err != nil {
 		return err
 	}
 
@@ -116,11 +219,10 @@ func (h *handler) deleteBucket(c echo.Context) error {
 }
 
 func (h *handler) headObject(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 	objectKey := c.Param("object_key")
 
-	object, err := h.ucase.HeadObject(vendor, bucketName, objectKey)
+	object, err := h.ucase.HeadObject(bucketName, objectKey)
 	if err != nil {
 		return err
 	}
@@ -134,7 +236,6 @@ func (h *handler) headObject(c echo.Context) error {
 // 生成的临时文件会在请求结束时自动删除。
 // 需确保临时文件目录有足够的存储空间，否则上传将失败。
 func (h *handler) postObject(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 	objectKey := c.Param("object_key")
 
@@ -148,11 +249,11 @@ func (h *handler) postObject(c echo.Context) error {
 		return c.String(http.StatusBadRequest, fmt.Sprintf("文件大小为%d", fh.Size))
 	}
 
-	if err := h.ucase.PutObject(vendor, bucketName, objectKey, f); err != nil {
+	if err := h.ucase.PutObject(bucketName, objectKey, f); err != nil {
 		return err
 	}
 
-	object, err := h.ucase.HeadObject(vendor, bucketName, objectKey)
+	object, err := h.ucase.HeadObject(bucketName, objectKey)
 	if err != nil {
 		return err
 	}
@@ -165,17 +266,16 @@ func (h *handler) postObject(c echo.Context) error {
 // 流式上传，不消耗内存及磁盘，即服务器从请求流读取数据，并将读取到的数据直接上传到对象存储。
 // 相比表单上传方式，流式上传的失败概率会增加。因为只要上传中，读取连接或上传连接失败，即上传失败。
 func (h *handler) putObject(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 	objectKey := c.Param("object_key")
 	body := c.Request().Body
 	defer body.Close()
 
-	if err := h.ucase.PutObject(vendor, bucketName, objectKey, body); err != nil {
+	if err := h.ucase.PutObject(bucketName, objectKey, body); err != nil {
 		return err
 	}
 
-	object, err := h.ucase.HeadObject(vendor, bucketName, objectKey)
+	object, err := h.ucase.HeadObject(bucketName, objectKey)
 	if err != nil {
 		return err
 	}
@@ -186,11 +286,10 @@ func (h *handler) putObject(c echo.Context) error {
 }
 
 func (h *handler) deleteObject(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 	objectKey := c.Param("object_key")
 
-	if err := h.ucase.DeleteObject(vendor, bucketName, objectKey); err != nil {
+	if err := h.ucase.DeleteObject(bucketName, objectKey); err != nil {
 		return err
 	}
 
@@ -198,11 +297,10 @@ func (h *handler) deleteObject(c echo.Context) error {
 }
 
 func (h *handler) initMultipartUpload(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 	objectKey := c.Param("object_key")
 
-	uploadID, err := h.ucase.InitMultipartUpload(vendor, bucketName, objectKey)
+	uploadID, err := h.ucase.InitMultipartUpload(bucketName, objectKey)
 	if err != nil {
 		return err
 	}
@@ -213,7 +311,6 @@ func (h *handler) initMultipartUpload(c echo.Context) error {
 }
 
 func (h *handler) completeMultipartUpload(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 	objectKey := c.Param("object_key")
 	uploadID := c.QueryParam("upload_id")
@@ -225,7 +322,7 @@ func (h *handler) completeMultipartUpload(c echo.Context) error {
 		return model.ErrInvalidParam
 	}
 
-	if err := h.ucase.CompleteUploadPart(vendor, bucketName, objectKey, uploadID, post.CompleteParts); err != nil {
+	if err := h.ucase.CompleteUploadPart(bucketName, objectKey, uploadID, post.CompleteParts); err != nil {
 		return err
 	}
 
@@ -233,12 +330,11 @@ func (h *handler) completeMultipartUpload(c echo.Context) error {
 }
 
 func (h *handler) abortMultipartUpload(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 	objectKey := c.Param("object_key")
 	uploadID := c.QueryParam("upload_id")
 
-	if err := h.ucase.AbortMultipartUpload(vendor, bucketName, objectKey, uploadID); err != nil {
+	if err := h.ucase.AbortMultipartUpload(bucketName, objectKey, uploadID); err != nil {
 		return err
 	}
 
@@ -246,7 +342,6 @@ func (h *handler) abortMultipartUpload(c echo.Context) error {
 }
 
 func (h *handler) uploadPart(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 	objectKey := c.Param("object_key")
 	uploadID := c.QueryParam("upload_id")
@@ -262,7 +357,7 @@ func (h *handler) uploadPart(c echo.Context) error {
 		return c.String(http.StatusBadRequest, fmt.Sprintf("文件大小为%d", fh.Size))
 	}
 
-	etag, err := h.ucase.UploadPart(vendor, bucketName, objectKey, uploadID, partNumber, f)
+	etag, err := h.ucase.UploadPart(bucketName, objectKey, uploadID, partNumber, f)
 	if err != nil {
 		return err
 	}
@@ -277,12 +372,11 @@ func (h *handler) uploadPart(c echo.Context) error {
 }
 
 func (h *handler) listParts(c echo.Context) error {
-	vendor := c.QueryParam("vendor_name")
 	bucketName := c.QueryParam("bucket_name")
 	objectKey := c.Param("object_key")
 	uploadID := c.QueryParam("upload_id")
 
-	parts, err := h.ucase.ListParts(vendor, bucketName, objectKey, uploadID)
+	parts, err := h.ucase.ListParts(bucketName, objectKey, uploadID)
 	if err != nil {
 		return err
 	}

@@ -7,7 +7,6 @@ import (
 	"os"
 )
 
-
 var cors = middleware.CORSWithConfig(middleware.CORSConfig{
 	Skipper:      middleware.DefaultSkipper,
 	AllowOrigins: []string{"*"},
@@ -16,4 +15,8 @@ var cors = middleware.CORSWithConfig(middleware.CORSConfig{
 
 func newAccessLog(logFile *os.File) echo.MiddlewareFunc {
 	return middleware.LoggerWithConfig(middleware.LoggerConfig{Output: logFile})
+}
+
+func getBucketName(c echo.Context) string {
+	return c.QueryParam("bucket")
 }

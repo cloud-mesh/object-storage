@@ -5,9 +5,20 @@ import (
 	"github.com/cloud-mesh/object-storage/utils/types"
 )
 
+type Region struct {
+	Vendor string `json:"vendor"`
+}
+
+func adapterRegion(region *model.Region) *Region {
+	if region == nil {
+		return nil
+	}
+
+	return &Region{Vendor: region.Vendor}
+}
+
 type Bucket struct {
 	Name      string         `json:"name"`
-	Vendor    string         `json:"vendor"`
 	CreatedAt types.JSONTime `json:"created_at"`
 }
 
@@ -17,7 +28,6 @@ func adapterBucket(bucket *model.Bucket) *Bucket {
 	}
 	return &Bucket{
 		Name:      bucket.Name,
-		Vendor:    bucket.Vendor,
 		CreatedAt: types.JSONTime(bucket.CreatedAt),
 	}
 }
@@ -33,8 +43,6 @@ func adapterBuckets(buckets []*model.Bucket) []*Bucket {
 }
 
 type Object struct {
-	Vendor        string         `json:"vendor"`
-	Bucket        string         `json:"bucket"`
 	ObjectKey     string         `json:"object_key"`
 	ContentType   string         `json:"content_type"`
 	ContentLength int            `json:"content_length"`
@@ -47,8 +55,6 @@ func adapterObject(object *model.Object) *Object {
 		return nil
 	}
 	return &Object{
-		Vendor:        object.Vendor,
-		Bucket:        object.Bucket,
 		ObjectKey:     object.ObjectKey,
 		ContentType:   object.ContentType,
 		ContentLength: object.ContentLength,
@@ -68,9 +74,6 @@ func adapterObjects(objects []*model.Object) []*Object {
 }
 
 type ObjectPart struct {
-	Vendor       string         `json:"vendor"`
-	Bucket       string         `json:"bucket"`
-	ObjectKey    string         `json:"object_key"`
 	PartNumber   int            `json:"part_number"`
 	ETag         string         `json:"etag"`
 	Size         int            `json:"size,omitempty"`
@@ -82,9 +85,6 @@ func adapterObjectPart(objectPart *model.ObjectPart) *ObjectPart {
 		return nil
 	}
 	return &ObjectPart{
-		Vendor:       objectPart.Vendor,
-		Bucket:       objectPart.Bucket,
-		ObjectKey:    objectPart.ObjectKey,
 		PartNumber:   objectPart.PartNumber,
 		ETag:         objectPart.ETag,
 		Size:         objectPart.Size,

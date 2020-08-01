@@ -3,56 +3,16 @@ info:
   title: 对象存储API
   version: 1.0.0
 servers:
-- url: http://example.com
+  - url: http://{bucket_name}.{region}.example.com
 tags:
-- name: 桶操作
-  description: ""
+  - name: 桶操作
+    description: ""
 paths:
-  /?vedor={vendor_name}:
-    get:
+  /:
+    head:
       tags:
-      - 桶操作
-      summary: 获取桶列表
-      parameters:
-      - name: vendor_name
-        description: 厂家名称
-        required: true
-        in: query
-        schema:
-          type: string
-      responses:
-        200:
-          description: 成功
-          content:
-            'application/json':
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/Status'
-                - type: object
-                  properties:
-                    buckets:
-                      type: array
-                      items:
-                        $ref: '#/components/schemas/Bucket'
-
-  /?vendor={vendor_anme}&bucket={bucket_name}:
-    get:
-      tags:
-      - 桶操作
+        - 桶操作
       summary: 获取桶详情
-      parameters:
-      - name: vendor_name
-        description: 厂家名称
-        required: true
-        in: query
-        schema:
-          type: string
-      - name: bucket_name
-        description: 桶名称
-        required: true
-        in: query
-        schema:
-          type: string
       responses:
         200:
           description: 成功
@@ -60,29 +20,16 @@ paths:
             'application/json':
               schema:
                 allOf:
-                - $ref: '#/components/schemas/Status'
-                - type: object
-                  properties:
-                    bucket:
-                      $ref: '#/components/schemas/Bucket'
+                  - $ref: '#/components/schemas/Status'
+                  - type: object
+                    properties:
+                      bucket:
+                        $ref: '#/components/schemas/Bucket'
 
     put:
       tags:
-      - 桶操作
+        - 桶操作
       summary: 创建桶
-      parameters:
-      - name: vendor_name
-        description: 厂家名称
-        required: true
-        in: query
-        schema:
-          type: string
-      - name: bucket_name
-        description: 桶名称
-        required: true
-        in: query
-        schema:
-          type: string
       requestBody:
         required: true
         content:
@@ -100,29 +47,16 @@ paths:
             'application/json':
               schema:
                 allOf:
-                - $ref: '#/components/schemas/Status'
-                - type: object
-                  properties:
-                    bucket:
-                      $ref: '#/components/schemas/Bucket'
+                  - $ref: '#/components/schemas/Status'
+                  - type: object
+                    properties:
+                      bucket:
+                        $ref: '#/components/schemas/Bucket'
 
     delete:
       tags:
-      - 桶操作
+        - 桶操作
       summary: 删除桶
-      parameters:
-      - name: vendor_name
-        description: 厂家名称
-        required: true
-        in: query
-        schema:
-          type: string
-      - name: bucket_name
-        description: 桶名称
-        required: true
-        in: query
-        schema:
-          type: string
       responses:
         200:
           description: 成功
@@ -145,11 +79,8 @@ components:
           description: 错误信息
     Bucket:
       type: object
-      description: Sei查询任务
+      description: 桶
       properties:
-        vendor:
-          type: string
-          description: 厂家
         name:
           type: string
           description: 桶名称
