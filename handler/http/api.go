@@ -21,6 +21,8 @@ func NewHandler(ucase usecase.UseCase) *handler {
 }
 
 func (h *handler) Route(e *echo.Echo) {
+	e.Use(domainParam)
+
 	e.HEAD("/", func(c echo.Context) error {
 		bucketName := getBucketName(c)
 		if bucketName == "" {

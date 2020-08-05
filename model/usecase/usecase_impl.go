@@ -24,7 +24,7 @@ func (u *usecaseImpl) GetBucket(bucketName string) (*model.Bucket, error) {
 	bucket, err := u.storage.GetBucket(bucketName)
 	if err != nil {
 		log.WithError(err).Errorf("vendor get bucket: bucket=%s", bucketName)
-		return nil, err
+		return nil, model.ErrVendorGetBucket
 	}
 
 	return bucket, nil
@@ -34,7 +34,7 @@ func (u *usecaseImpl) ListBucket(page int, pageSize int) ([]*model.Bucket, error
 	buckets, err := u.storage.ListBucket(page, pageSize)
 	if err != nil {
 		log.WithError(err).Errorf("vendor list bucket: page=%d, pageSize=%d", page, pageSize)
-		return nil, err
+		return nil, model.ErrVendorListBucket
 	}
 
 	return buckets, nil
@@ -43,7 +43,7 @@ func (u *usecaseImpl) ListBucket(page int, pageSize int) ([]*model.Bucket, error
 func (u *usecaseImpl) CreateBucket(bucketName string) error {
 	if err := u.storage.CreateBucket(bucketName); err != nil {
 		log.WithError(err).Errorf("vendor create bucket: bucket=%s", bucketName)
-		return err
+		return model.ErrVendorMakeBucket
 	}
 
 	return nil
@@ -52,7 +52,7 @@ func (u *usecaseImpl) CreateBucket(bucketName string) error {
 func (u *usecaseImpl) DeleteBucket(bucketName string) error {
 	if err := u.storage.DeleteBucket(bucketName); err != nil {
 		log.WithError(err).Errorf("vendor delete bucket: bucket=%s", bucketName)
-		return err
+		return model.ErrVendorRemoveBucket
 	}
 
 	return nil
@@ -62,7 +62,7 @@ func (u *usecaseImpl) HeadObject(bucketName string, objectKey string) (*model.Ob
 	object, err := u.storage.HeadObject(bucketName, objectKey)
 	if err != nil {
 		log.WithError(err).Errorf("vendor head object: bucket=%s, objectKey=%s", bucketName, objectKey)
-		return nil, err
+		return nil, model.ErrVendorHeadObject
 	}
 	return object, nil
 }
@@ -70,7 +70,7 @@ func (u *usecaseImpl) HeadObject(bucketName string, objectKey string) (*model.Ob
 func (u *usecaseImpl) PutObject(bucketName string, objectKey string, reader io.Reader) error {
 	if err := u.storage.PutObject(bucketName, objectKey, reader); err != nil {
 		log.WithError(err).Errorf("vendor put object: bucket=%s, objectKey=%s", bucketName, objectKey)
-		return err
+		return model.ErrVendorPutObject
 	}
 
 	return nil
@@ -79,7 +79,7 @@ func (u *usecaseImpl) PutObject(bucketName string, objectKey string, reader io.R
 func (u *usecaseImpl) DeleteObject(bucketName string, objectKey string) error {
 	if err := u.storage.DeleteObject(bucketName, objectKey); err != nil {
 		log.WithError(err).Errorf("vendor delete object: bucket=%s, objectKey=%s", bucketName, objectKey)
-		return err
+		return model.ErrVendorRemoveObject
 	}
 
 	return nil
@@ -89,7 +89,7 @@ func (u *usecaseImpl) InitMultipartUpload(bucketName string, objectKey string) (
 	uploadID, err := u.storage.InitMultipartUpload(bucketName, objectKey)
 	if err != nil {
 		log.WithError(err).Errorf("vendor init multipart: bucket=%s, objectKey=%s", bucketName, objectKey)
-		return "", nil
+		return "", model.ErrVendorMultipartUploadInit
 	}
 
 	return uploadID, nil
@@ -99,7 +99,7 @@ func (u *usecaseImpl) CompleteUploadPart(bucketName string, objectKey string, up
 	if err := u.storage.CompleteUploadPart(bucketName, objectKey, uploadId, parts); err != nil {
 		log.WithError(err).Errorf("vendor complete multipart: bucket=%s, objectKey=%s, uploadId=%s, parts=%#v",
 			bucketName, objectKey, uploadId, parts)
-		return err
+		return model.ErrVendorMultipartUploadComplete
 	}
 
 	return nil
@@ -109,7 +109,7 @@ func (u *usecaseImpl) AbortMultipartUpload(bucketName string, objectKey string, 
 	if err := u.storage.AbortMultipartUpload(bucketName, objectKey, uploadId); err != nil {
 		log.WithError(err).Errorf("vendor abort multipart: bucket=%s, objectKey=%s, uploadId=%s",
 			bucketName, objectKey, uploadId)
-		return err
+		return model.ErrVendorMultipartUploadAbort
 	}
 
 	return nil
@@ -120,7 +120,7 @@ func (u *usecaseImpl) UploadPart(bucketName string, objectKey string, uploadId s
 	if err != nil {
 		log.WithError(err).Errorf("vendor upload multipart: bucket=%s, objectKey=%s, uploadId=%s, partNumber=%d",
 			bucketName, objectKey, uploadId, partNum)
-		return "", err
+		return "", model.ErrVendorMultipartUploadUploadPart
 	}
 
 	return eTag, nil
@@ -131,7 +131,7 @@ func (u *usecaseImpl) ListParts(bucketName string, objectKey string, uploadId st
 	if err != nil {
 		log.WithError(err).Errorf("vendor list multipart: bucket=%s, objectKey=%s, uploadId=%s",
 			bucketName, objectKey, uploadId)
-		return nil, err
+		return nil, model.ErrVendorMultipartUploadListPart
 	}
 
 	return parts, nil

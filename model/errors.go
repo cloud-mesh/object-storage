@@ -1,26 +1,22 @@
 package model
 
 const (
-	ErrCodeOK      = 1000
-	ErrCodeUnknown = 9999
+	ErrCodeOK      = 0
+	ErrCodeUnknown = 99999
 
 	errorCodeBase = 15000
 )
 
 var (
-	ErrNoAuth              = newError(errorCodeBase+0, "no auth")
-	ErrNoPerm              = newError(errorCodeBase+1, "no perm")
-	ErrNotFound            = newError(errorCodeBase+3, "not found")
-	ErrInvalidParam        = newError(errorCodeBase+4, "invalid parameters")
-	ErrVendorNotRegistered = newError(errorCodeBase+6, "vendor not registered")
+	ErrInvalidParam = newError(errorCodeBase+0, "invalid parameters")
 
 	ErrVendorGetBucket                 = newError(errorCodeBase+500, "vendor get bucket")
-	ErrVendorMakeBucket                = newError(errorCodeBase+501, "vendor make bucket")
-	ErrVendorRemoveBucket              = newError(errorCodeBase+502, "vendor remove bucket")
-	ErrVendorHeadObject                = newError(errorCodeBase+503, "vendor head object")
-	ErrVendorPutObject                 = newError(errorCodeBase+504, "vendor put object")
-	ErrVendorRemoveObject              = newError(errorCodeBase+505, "vendor remove object")
-	ErrVendorNotSupportMultipartUpload = newError(errorCodeBase+506, "vendor not support multipart upload")
+	ErrVendorListBucket                = newError(errorCodeBase+501, "vendor get bucket")
+	ErrVendorMakeBucket                = newError(errorCodeBase+502, "vendor make bucket")
+	ErrVendorRemoveBucket              = newError(errorCodeBase+503, "vendor remove bucket")
+	ErrVendorHeadObject                = newError(errorCodeBase+504, "vendor head object")
+	ErrVendorPutObject                 = newError(errorCodeBase+505, "vendor put object")
+	ErrVendorRemoveObject              = newError(errorCodeBase+506, "vendor remove object")
 	ErrVendorMultipartUploadInit       = newError(errorCodeBase+507, "vendor init multipart upload")
 	ErrVendorMultipartUploadComplete   = newError(errorCodeBase+508, "vendor complete multipart upload")
 	ErrVendorMultipartUploadAbort      = newError(errorCodeBase+509, "vendor abort multipart upload")
